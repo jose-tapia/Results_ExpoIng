@@ -14,9 +14,9 @@ sns.set(context="paper", font_scale=1, palette="husl", style="ticks",
             "xtick.major.top": False, "ytick.major.right": False})
 
 is_saving = True
-show_plots = False
+show_plots = True
 saving_format = 'svg'
-results_file_name = 'batch_1'
+results_file_name = 'batch_5'
 
 plt.rcParams.update({'figure.max_open_warning': 0})
 plt.close('all')
@@ -31,7 +31,7 @@ batch_5 = ['Small_pop30', 'Deep', 'LSTM_30_fixed_length', 'unfolded_hhs_pop30', 
 # consider_experiments = list(collection_experiments.keys())
 
 # Indicates which experiments
-consider_experiments = batch_1
+consider_experiments = batch_5
  
 
 
@@ -383,6 +383,8 @@ DF = pd.DataFrame({'Metaheuristic': mh_so, 'Selector': selector_so})
 
 sns.set(font_scale = 1.8)
 fig, ax = plt.subplots(figsize=(12,6))
+fig.subplots_adjust()
+fig.tight_layout()
 so_dist = sns.countplot(data=DF, x='Metaheuristic', hue='Selector', ax=ax, palette='tab10')
 locs, labels = plt.xticks()
 plt.setp(labels, rotation=45)
@@ -395,7 +397,7 @@ sns.set(context="paper", font_scale=1, palette="husl", style="ticks",
 
 if is_saving:
     plt.savefig(folder_name + 'search_operators_collection_default.' + saving_format,
-               format=saving_format, dpi=333, transparent=True)
+               format=saving_format, dpi=333, bbox_inches="tight", transparent=True)
 if show_plots:
     plt.show()
 
@@ -434,6 +436,8 @@ for idx in best_table_rank_dim.index:
     best_table_rank_dim.loc[idx, 'Count'] = x['Count'] / sums_dim[x['Dim']]
 
 fig, ax = plt.subplots(figsize=(9,4))
+fig.subplots_adjust()
+fig.tight_layout()
 p_1_winner = sns.barplot(data=best_table_rank_dim, x='Dim', y='Count', hue='Id', palette='tab10')
 
 p_1_winner.set_xlabel(r'Dimension')
@@ -441,7 +445,7 @@ p_1_winner.set_ylabel('Percentage')
 
 if is_saving:
     plt.savefig(folder_name + results_file_name + '_' + 'Rank_Winner_dim.' + saving_format,
-               format=saving_format, dpi=333, transparent=True)
+               format=saving_format, dpi=333, bbox_inches="tight", transparent=True)
 if show_plots:
     plt.show()
 
@@ -459,8 +463,8 @@ if show_plots:
 plt.figure(figsize=[5.5, 4])
 sns.lineplot(data=full_table, x='Dim', y='Rank', palette='tab10', hue='Id')
 
-if is_saving:
-    plt.savefig(folder_name + results_file_name + '_' + 'Rank_vs_Dim_Id-Line.' + saving_format, format=saving_format, dpi=333, transparent=True)
+#if is_saving:
+#    plt.savefig(folder_name + results_file_name + '_' + 'Rank_vs_Dim_Id-Line.' + saving_format, format=saving_format, dpi=333, bbox_inches="tight", transparent=True)
 
 if show_plots:
     plt.show()
@@ -484,6 +488,8 @@ for id in ids:
     df = pd.DataFrame(ids_dict, index=dims)
     
     fig, ax = plt.subplots(figsize=(4,5))
+    fig.subplots_adjust()
+    fig.tight_layout()
     sns.heatmap(df, vmin=0, vmax=1, annot=True,  cmap="YlGnBu")
     plt.title(f'Percentage comparison for {id}')
     
@@ -491,7 +497,7 @@ for id in ids:
 
     if is_saving:
         plt.savefig(folder_name  +  f'{id_text}_Percentage_cmp_BMH_UMH30.' + saving_format,
-                format=saving_format, dpi=333, transparent=True)
+                format=saving_format, dpi=333, bbox_inches="tight", transparent=True)
     if show_plots:
         plt.show()
 
@@ -510,6 +516,8 @@ for id in ids:
     df = pd.DataFrame(ids_dict, index=dims)
     
     fig, ax = plt.subplots(figsize=(4,5))
+    fig.subplots_adjust()
+    fig.tight_layout()
     sns.heatmap(df, vmin=0, vmax=1, annot=True,  cmap="YlGnBu")
     plt.title(f'Percentage comparison for {id}')
     
@@ -517,7 +525,7 @@ for id in ids:
 
     if is_saving:
         plt.savefig(folder_name  +  f'{id_text}_Percentage_cmp_BMH_UMH50.' + saving_format,
-                format=saving_format, dpi=333, transparent=True)
+                format=saving_format, dpi=333, bbox_inches="tight", transparent=True)
     if show_plots:
         plt.show()
 
@@ -525,7 +533,9 @@ for id in ids:
 
 
 # %% Fourth Plot // Wilcoxon test
+print(len(basic_mhs_data['results'][0]['operator_id']))
 
+p_value = 0.05
 dict_basicMH_perf = dict()
 for i in basic_mhs_data['results'][0]['operator_id']:
     dict_basicMH_perf[i] = []
@@ -537,17 +547,23 @@ for x in basic_mhs_data['results']:
 for id in ids:
     performance_id = list(data_tables[id]['Performance'])
     results_stats = []
-    for x in dict_basicMH_perf:
+    print(f'Testing {id}')
+    for i, x in enumerate(dict_basicMH_perf):
         _, p = stats.wilcoxon(performance_id, dict_basicMH_perf[x], alternative='less')
+        if p > p_value:
+            print('Winner: ', basic_mhs_collection[i])
         results_stats.append(p)
+    print('\n\n')
     fig, ax = plt.subplots(figsize=(6,4))
+    fig.subplots_adjust()
+    fig.tight_layout()
     #ax.set(yscale='log')
     #results_stats = [1, 2, 3]
     df = pd.DataFrame({'Basic MH': list(range(len(results_stats))), 'p-value': results_stats })
     #ax.bar(df['Basic MH'], df['p-value'], color='blue')
     #plt.legend()
     barplottt = sns.barplot(x=df['Basic MH'], y=df['p-value'], palette='tab10')
-    ax.axhline(y=0.05, color='black', linestyle='--')
+    ax.axhline(y=p_value, color='black', linestyle='--')
     barplottt.set_yscale('linear')
     barplottt.set(xticks=[])
     ax.set_xlabel('Basic metaheuristics')
@@ -557,12 +573,14 @@ for id in ids:
 
     if is_saving:
         plt.savefig(folder_name +  f'{id_text}_pvalue_linear_scale.' + saving_format,
-                format=saving_format, dpi=333, transparent=True)
+                format=saving_format, dpi=333, bbox_inches="tight", transparent=True)
     if show_plots:
         plt.show()
 
     
     fig, ax = plt.subplots(figsize=(6,4))
+    fig.subplots_adjust()
+    fig.tight_layout()
     barplottt = sns.barplot(x=df['Basic MH'], y=df['p-value'], palette='tab10')
     ax.axhline(y=0.05, color='black', linestyle='--')
     barplottt.set_yscale('log')
@@ -573,7 +591,7 @@ for id in ids:
     id_text = id.replace('\\', '')
     if is_saving:
         plt.savefig(folder_name +  f'{id_text}_pvalue_log_scale.' + saving_format,
-                format=saving_format, dpi=333, transparent=True)
+                format=saving_format, dpi=333, bbox_inches="tight", transparent=True)
     if show_plots:
         plt.show()
 
@@ -597,6 +615,8 @@ for id in ids:
 
 # %% Wilcoxon between ids
 fig, ax = plt.subplots(figsize=(6,5))
+fig.subplots_adjust()
+fig.tight_layout()
 dict_comparison = dict()
 for id in ids:
     performance_id = list(data_tables[id]['Performance'])    
@@ -617,12 +637,14 @@ ax.set_ylabel('Right')
 
 if is_saving:
     plt.savefig(folder_name + results_file_name + '_' + 'wilcoxon_all_pairs_twosided.' + saving_format,
-               format=saving_format, dpi=333, transparent=True)
+               format=saving_format, dpi=333, bbox_inches="tight", transparent=True)
 if show_plots:
     plt.show()
 
 #%%
 fig, ax = plt.subplots(figsize=(6,5))
+fig.subplots_adjust()
+fig.tight_layout()
 dict_comparison = dict()
 for id in ids:
     performance_id = list(data_tables[id]['Performance'])    
@@ -643,11 +665,13 @@ ax.set_ylabel('Right')
 
 if is_saving:
     plt.savefig(folder_name + results_file_name + '_' + 'wilcoxon_all_pairs_less.' + saving_format,
-               format=saving_format, dpi=333, transparent=True)
+               format=saving_format, dpi=333, bbox_inches="tight", transparent=True)
 if show_plots:
     plt.show()
 #%%
 fig, ax = plt.subplots(figsize=(6,5))
+fig.subplots_adjust()
+fig.tight_layout()
 dict_comparison = dict()
 for id in ids:
     performance_id = list(data_tables[id]['Performance'])    
@@ -668,7 +692,7 @@ ax.set_ylabel('Right')
 
 if is_saving:
     plt.savefig(folder_name + results_file_name + '_' + 'wilcoxon_all_pairs_greater.' + saving_format,
-               format=saving_format, dpi=333, transparent=True)
+               format=saving_format, dpi=333, bbox_inches="tight", transparent=True)
 if show_plots:
     plt.show()
 
@@ -681,7 +705,7 @@ p_5 = sns.displot(data=full_table, hue='Id', col='Dim', x='Cardinality', kind='k
                  aspect=0.8, fill=True)
 
 if is_saving:
-    p_5.savefig(folder_name + results_file_name + '_' + 'Card_vs_Dim_Id-KDE.' + saving_format, format=saving_format, dpi=333, transparent=True)
+    p_5.savefig(folder_name + results_file_name + '_' + 'Card_vs_Dim_Id-KDE.' + saving_format, format=saving_format, dpi=333, bbox_inches="tight", transparent=True)
 
 if show_plots:
     plt.show()
@@ -696,7 +720,7 @@ p_1_optional.set_xlabel(r'Dimension')
 p_1_optional.set_ylabel('Percentage')
 if is_saving:
     p_1_optional.savefig(folder_name + results_file_name + '_' + 'Rank_vs_Id_and_Dim_Cat-BestRanked.' + saving_format,
-               format=saving_format, dpi=333, transparent=True)
+               format=saving_format, dpi=333, bbox_inches="tight", transparent=True)
 
 if show_plots:
     plt.show()
@@ -721,7 +745,7 @@ p_5_so = sns.displot(data=full_table, hue='Id', col='Dim', x='Unique', kind='kde
 p_5_so.set_xlabels('Number of different SO')
 
 if is_saving:
-    p_5_so.savefig(folder_name + results_file_name + '_' + 'Unique_vs_Dim_Id-KDE.' + saving_format, format=saving_format, dpi=333, transparent=True)
+    p_5_so.savefig(folder_name + results_file_name + '_' + 'Unique_vs_Dim_Id-KDE.' + saving_format, format=saving_format, dpi=333, bbox_inches="tight", transparent=True)
 
 if show_plots:
     plt.show()
@@ -741,7 +765,7 @@ def plot_pvalue_boxplot(data_table, id):
     if is_saving:
         id_file = ''.join(c for c in id if c not in '\\')
         fig.savefig(folder_name + results_file_name + '_' + 'pValue-id_{}-CatDim-BoxPlot.'.format(id_file) + saving_format,
-                    format=saving_format, dpi=333, transparent=True)
+                    format=saving_format, dpi=333, bbox_inches="tight", transparent=True)
 
 
 for pop, data_table in data_tables.items():
