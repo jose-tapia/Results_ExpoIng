@@ -9,8 +9,8 @@ import os
 import seaborn as sns
 import benchmark_func as bf
 
-sns.set(context="paper", font_scale=1, palette="husl", style="ticks",
-        rc={'text.usetex': True, 'font.family': 'serif', 'font.size': 12,
+sns.set(context="paper", font_scale=1.8, palette="husl", style="ticks",
+        rc={'text.usetex': True, 'font.family': 'serif', 'font.size': 15,
             "xtick.major.top": False, "ytick.major.right": False})
 
 is_saving = True
@@ -24,8 +24,8 @@ plt.close('all')
 batch_1 = ['Small_pop30', 'unfolded_hhs_pop30']
 batch_2 = ['Small_pop30', 'Medium', 'Big', 'Deep']
 batch_3 = ['LSTM_variable_length', 'LSTM_max_fixed_length', 'LSTM_30_fixed_length']
-batch_4 = ['Small_pop50', 'unfolded_hhs_pop50']
-batch_5 = ['Small_pop30', 'Deep', 'LSTM_30_fixed_length', 'unfolded_hhs_pop30', 'Small_pop50'] # TBD
+batch_4 = ['Small_pop30', 'Small_pop50', 'unfolded_hhs_pop30', 'unfolded_hhs_pop50']
+batch_5 = ['Small_pop30', 'Deep', 'LSTM_30_fixed_length', 'Small_pop50'] # TBD
 
 # All experiments
 # consider_experiments = list(collection_experiments.keys())
@@ -381,7 +381,6 @@ for mh, _, selector in heuristic_space:
 DF = pd.DataFrame({'Metaheuristic': mh_so, 'Selector': selector_so})
 
 
-sns.set(font_scale = 1.8)
 fig, ax = plt.subplots(figsize=(12,6))
 fig.subplots_adjust()
 fig.tight_layout()
@@ -390,10 +389,6 @@ locs, labels = plt.xticks()
 plt.setp(labels, rotation=45)
 so_dist.set_xlabel(r'Basic metaheuristic search operators')
 so_dist.set_ylabel(r'Number of search operators')
-sns.set()
-sns.set(context="paper", font_scale=1, palette="husl", style="ticks",
-        rc={'text.usetex': True, 'font.family': 'serif', 'font.size': 12,
-            "xtick.major.top": False, "ytick.major.right": False})
 
 if is_saving:
     plt.savefig(folder_name + 'search_operators_collection_default.' + saving_format,
@@ -404,6 +399,7 @@ if show_plots:
 
 
 # %% First Plot // Percentage of winning per dimmension
+
 
 ids_list = full_table['Id'].unique()
 dims_list = full_table['Dim'].unique()
@@ -433,9 +429,9 @@ for Dim in dims_list:
 best_table_rank_dim = best_table_rank.copy()
 for idx in best_table_rank_dim.index:
     x = best_table_rank_dim.iloc[idx]
-    best_table_rank_dim.loc[idx, 'Count'] = x['Count'] / sums_dim[x['Dim']]
+    best_table_rank_dim.loc[idx, 'Count'] = 100*x['Count'] / sums_dim[x['Dim']]
 
-fig, ax = plt.subplots(figsize=(9,4))
+fig, ax = plt.subplots(figsize=(12,7))
 fig.subplots_adjust()
 fig.tight_layout()
 p_1_winner = sns.barplot(data=best_table_rank_dim, x='Dim', y='Count', hue='Id', palette='tab10')
@@ -483,14 +479,14 @@ ids = table_bydim_basic['Id'].unique()
 
 ids_dict = dict()
 for id in ids:
-    ids_dict['Basic MH'] = list(table_bydim_basic[table_bydim_basic['Id'] == id]['successRate'])
-    ids_dict['Unfolded MH pop30'] = list(table_bydim_uMH30[table_bydim_uMH30['Id'] == id]['successRateUMH30'])
+    ids_dict['Basic MH'] = list(table_bydim_basic[table_bydim_basic['Id'] == id]['successRate']*100) 
+    ids_dict['Unfolded MH pop30'] = list(table_bydim_uMH30[table_bydim_uMH30['Id'] == id]['successRateUMH30']*100) 
     df = pd.DataFrame(ids_dict, index=dims)
     
-    fig, ax = plt.subplots(figsize=(4,5))
+    fig, ax = plt.subplots(figsize=(6,7.5))
     fig.subplots_adjust()
     fig.tight_layout()
-    sns.heatmap(df, vmin=0, vmax=1, annot=True,  cmap="YlGnBu")
+    sns.heatmap(df, vmin=0, vmax=100, annot=True,  cmap="YlGnBu")
     plt.title(f'Percentage comparison for {id}')
     
     id_text = id.replace('\\', '')
@@ -511,11 +507,11 @@ ids = table_bydim_basic['Id'].unique()
 
 ids_dict = dict()
 for id in ids:
-    ids_dict['Basic MH'] = list(table_bydim_basic[table_bydim_basic['Id'] == id]['successRate'])
-    ids_dict['Unfolded MH pop50'] = list(table_bydim_uMH50[table_bydim_uMH50['Id'] == id]['successRateUMH50'])
+    ids_dict['Basic MH'] = list(table_bydim_basic[table_bydim_basic['Id'] == id]['successRate']*100)
+    ids_dict['Unfolded MH pop50'] = list(table_bydim_uMH50[table_bydim_uMH50['Id'] == id]['successRateUMH50']*100)
     df = pd.DataFrame(ids_dict, index=dims)
     
-    fig, ax = plt.subplots(figsize=(4,5))
+    fig, ax = plt.subplots(figsize=(6,7.5))
     fig.subplots_adjust()
     fig.tight_layout()
     sns.heatmap(df, vmin=0, vmax=1, annot=True,  cmap="YlGnBu")
@@ -614,7 +610,8 @@ for id in ids:
     print(w, p)
 
 # %% Wilcoxon between ids
-fig, ax = plt.subplots(figsize=(6,5))
+fig, ax = plt.subplots(figsize=(8,6))
+
 fig.subplots_adjust()
 fig.tight_layout()
 dict_comparison = dict()
@@ -624,16 +621,16 @@ for id in ids:
     for id2 in ids:
         performance_id2 = list(data_tables[id2]['Performance'])
         if id == id2:
-            p = 0
+            p = 1
         else:
             w, p = stats.wilcoxon(performance_id, performance_id2)#, alternative='less')
         dict_comparison[id].append(p)
 
 df_comparison = pd.DataFrame(dict_comparison, index=ids)
 sns.heatmap(df_comparison, vmin=0, vmax=1, annot=True,  cmap="Reds")
-ax.set_title('Alternative: two-sided')
-ax.set_xlabel('Left')
-ax.set_ylabel('Right')
+ax.set_title('Alternative: Different than')
+ax.set_xlabel('$A$')
+ax.set_ylabel('$B$')
 
 if is_saving:
     plt.savefig(folder_name + results_file_name + '_' + 'wilcoxon_all_pairs_twosided.' + saving_format,
@@ -642,7 +639,7 @@ if show_plots:
     plt.show()
 
 #%%
-fig, ax = plt.subplots(figsize=(6,5))
+fig, ax = plt.subplots(figsize=(8,6))
 fig.subplots_adjust()
 fig.tight_layout()
 dict_comparison = dict()
@@ -659,9 +656,9 @@ for id in ids:
 
 df_comparison = pd.DataFrame(dict_comparison, index=ids)
 sns.heatmap(df_comparison, vmin=0, vmax=1, annot=True,  cmap="Blues")
-ax.set_title('Alternative: less')
-ax.set_xlabel('Left')
-ax.set_ylabel('Right')
+ax.set_title('Alternative: Outperform than')
+ax.set_xlabel('$A$')
+ax.set_ylabel('$B$')
 
 if is_saving:
     plt.savefig(folder_name + results_file_name + '_' + 'wilcoxon_all_pairs_less.' + saving_format,
@@ -669,7 +666,7 @@ if is_saving:
 if show_plots:
     plt.show()
 #%%
-fig, ax = plt.subplots(figsize=(6,5))
+fig, ax = plt.subplots(figsize=(8,6))
 fig.subplots_adjust()
 fig.tight_layout()
 dict_comparison = dict()
@@ -686,9 +683,9 @@ for id in ids:
 
 df_comparison = pd.DataFrame(dict_comparison, index=ids)
 sns.heatmap(df_comparison, vmin=0, vmax=1, annot=True,  cmap="Greens")
-ax.set_title('Alternative: greater')
-ax.set_xlabel('Left')
-ax.set_ylabel('Right')
+ax.set_title('Alternative: Worst than')
+ax.set_xlabel('$A$')
+ax.set_ylabel('$B$')
 
 if is_saving:
     plt.savefig(folder_name + results_file_name + '_' + 'wilcoxon_all_pairs_greater.' + saving_format,
